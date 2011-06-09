@@ -1,33 +1,46 @@
 <?
   include("function.php");
+  include("modelo.volunteers.php");
+  include("vista.php");
+
   //variables globales para enviar correo---------------------------------
   $direccion_pagina=$_SERVER['SERVER_NAME'].$_SERVER['SCRIPT_NAME'];//127.0.0.1/voluntarios/index.php
   $email_emisor="turboasm@hotmail.com";
 
-  conectar();//conectar a la base de datos;
+  mysql_conectar();//conectar a la base de datos;
   //validar datos de entrada
   if(!empty($_POST)){     $_in = $_POST;}
   elseif(!empty($_GET)){  $_in = $_GET; }
   else{                   $_in = "";    }
-  list($resultado,$registrar,$correo,$comentario,$crip)=validar($_in);
-
+  list($resultado,$registrar,$correo,$comentario,$crip)=baja_validar($_in);
   if($resultado==1){
+    $resultado="La llamada de registro no es valida 1";
     switch ($registrar){
-      case "enviar baja": $resultado=enviar_baja($correo,$comentario); break;
-      case "baja":        $resultado=       baja($correo,$comentario,$crip); break;
+      case "enviar baja": 
+        $resultado=baja_enviar($correo,$comentario); 
+        if($resultado==1){ vista_validacion("Correo de baja enviado con exito");}
+        else{              vista_error($resultado);}
+        break;
+      case "baja":        
+        $resultado=mysql_baja($correo,$comentario,$crip); 
+        if($resultado==2){ vista_validacion("Voluntario borrado con exito");}
+        else{              vista_error($resultado);}
+        break;
+      default : break;
     }
-  }
-  vistas($resultado,$correo,$comentario);
+  }else{echo "<h3>$resultado</h3>\n";}
+  //vistas($resultado,$correo,$comentario);
   die ();
 
 
-function validar($_in){
+function baja_validar($_in){
   //Inicializando valores--------------------------------------------------
   $resultado="";
   $registrar="";
   $correo="";
   $comentario="";
   $crip="";
+  $resultado="";
   //-------------------------------------------------------------------------
   //validando datos recibidos y enviar correo
   //------------------------------------------------------------------------
@@ -35,13 +48,13 @@ function validar($_in){
     $ok=1;
     $ko="";
     if(empty($_in["registrar"])){
-      $registrar=""; $ok=2;
+      $registrar=""; $ok=0; $ko="La llamada de registro no es valida 2";
     }else{   
       $registrar = $_in["registrar"];   
       //correo---------------------------------------------------------------
       if(!empty($_in["correo"])){ 
-        if(ValidaMail($_in["correo"]) && strlen($_in["correo"])<64){       $correo = $_in["correo"];       
-        }else{                      $ko.=strlen($_in["correo"]);           $correo = ""; $ok=0; $ko.="El correo no es valido ".$_in['correo']."<br>\n";}
+        if(function_validamail($_in["correo"]) && strlen($_in["correo"])<64){       $correo = $_in["correo"];       
+        }else{                                                             $correo = ""; $ok=0; $ko.="El correo no es valido ".$_in['correo']."<br>\n";}
       }else{                                                               $correo = ""; $ok=0; $ko.="Introducca su correo<br>\n";}
       //comentario-----------------------------------------------------------
       if(!empty($_in["comentario"])){
@@ -50,43 +63,27 @@ function validar($_in){
       //codigo encriptado de validacion
       if(!empty($_in['crip'])){                                                $crip=$_in['crip'];        
       }else{                                                                   $crip="";}
-      //----------------------------------------------------------------------
-      //----------------------------------------------------------------------
-      if($ok==0){
-        $resultado=$ko;
-      }else{
-        $resultado=$ok;
-      }
     }
+  }else{$ok=0; $ko="No se han introducido datos";}
+  //----------------------------------------------------------------------
+  //----------------------------------------------------------------------
+  if($ok==0){
+    $resultado=$ko;
+  }else{
+    $resultado=$ok;
   }
   return array($resultado,$registrar,$correo,$comentario,$crip);
 }
 
 
-/*function crip_baja($i,$correo,$crip){
-  //funcion de validacion------------------------------------
-  $x=md5($correo.'^#/\3,!');
-  switch ($i){
-    //encripta---------------------------------------------
-    case  1: $crip=$x; break;
-    //desencripta-------------------------------------------
-    //case -1: break;
-    //valida (true/false)-----------------------------------
-    case  0: if($x==$crip){$crip=true;}else{$crip=false;}; break;
-  }
-  return $crip;
-}*/
 
-
-
-
-function enviar_baja($correo,$comentario){
+function baja_enviar($correo,$comentario){
   //inicializacion de variables------------------------------------
   global $direccion_pagina;
   global $email_emisor;
 
   //codigo encrptado----------------------------------------------
-  $crip=crip_baja(1,$correo,$crip);
+  $crip=function_crip_baja(1,$correo,$crip);
 
   //link de validacion-------------------------------------------
   $validar ="?registrar=baja&correo=".urlencode($correo)."&crip=".urlencode($crip)."&comentario=".urlencode($comentario);
@@ -114,22 +111,22 @@ function enviar_baja($correo,$comentario){
   //$headers .= "Cc:  $email_emisor\r\n";
   //$headers .= "Bcc: $email_emisor\r\n";
 
-  if(mail($correo,$asunto,$cuerpo,$headers)){ $resultado=6; //correo enviado
+  if(mail($correo,$asunto,$cuerpo,$headers)){ $resultado=1; //correo enviado
   }else{                                      $resultado="Ocurrio un fallo enviado el correo"; }  
 
   return "$resultado";
 }
 
 
-
-function baja($correo,$comentario,$crip){
+/*
+function baja_grabar($correo,$comentario,$crip){
   $correo   = mysql_real_escape_string($correo);
   $comentario=mysql_real_escape_string($comentario);
 
   //encriptacion de control------------------------------------------------------
-  if(!crip_baja(0,$correo,$crip)){
-    $resultado="Ha ocurrido un error durante la baja la validacion no coincide $correo-$comentario<br>\n$crip<br>\n".crip_baja(1,$correo,$comentario,$crip); 
-    $resultado.="<br>\n--".crip_baja(0,$correo,$comentario,$crip)."-";
+  if(!function_crip_baja(0,$correo,$crip)){
+    $resultado="Ha ocurrido un error durante la baja la validacion no coincide<br>\n"; 
+    //$resultado.="<br>\n$crip<br>\n".crip_baja(0,$correo,$comentario,$crip)."<br>\n";
   }else{
     //Inicializacion de variables---------------------------------------------------
     $correo   = mysql_real_escape_string($correo);
@@ -156,29 +153,25 @@ function baja($correo,$comentario,$crip){
       }elseif(!mysql_query($sql3)){
         $resultado="Ocurrio un error en la actualizacion de la base de datos-3-".mysql_error();
       }else{
-        $resultado=7;
+        $resultado=2;
       }
     }
   }
   return $resultado;
 }
+*/
 
 
-
-
+/*
 function vistas($resultado,$correo,$comentario){
   cabecera();
   echo "    <h1>Voluntarios en pruebas</h1>\n";
   switch ($resultado){
-    //Se validaron los datos pero no se implemento un uso de registrar
-    case 1: $resultado="Algo ha fallado1"; break; 
-    //Llegaron datos pero sin boton de registrar
-    case 2: $resultado="Algo ha fallado2"; break;
     //Correo enviado con exito
-    case 6: $resultado="Correo de baja enviado con exito"; break;
+    case 1: echo "<h3>Correo de baja enviado con exito</h3>"; break;
     //Datos guardados con exito
-    case 7: $resultado="Voluntario borrado con exito"; break;
-  }
+    case 2: echo "<h3>Voluntario borrado con exito</h3>"; break;
+    default:
 ?>
     <h3><?=$resultado?></h3>
     <h3>Darse de baja</h3>
@@ -190,50 +183,10 @@ function vistas($resultado,$correo,$comentario){
       </table>
     </form>
 <?
+  }
   cabecera_fin();
 }
+*/
 
 
 
-/*function ValidaMail($pMail) {//copiado de http://www.desarrolloweb.com/articulos/990.php
-  if (ereg("^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@+([_a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]{2,200}\.[a-zA-Z]{2,6}$", $pMail ) ) {
-    return true;
-  }else{
-    return false;
-  }
-} 
-
-function conectar(){
-  $link = mysql_connect('localhost', 'root', 'sol') or die('No se pudo conectar: ' . mysql_error());
-  mysql_select_db('volunteers') or die('No se pudo seleccionar la base de datos');
-}
-
-function cabecera() {
-?>
-<html>
-<head>
-  <style>
-    table,tr,td{
-      border: 1px solid black;
-    }
-  </style>
-  <script>
-    function validarEmail(valor) {
-      if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3,4})+$/.test(valor)){
-        //alert("La dirección de email " + valor + " es correcta.");
-      } else {
-        alert("La dirección de email es incorrecta.");
-      }
-    }
-  </script>
-</head>
-<body>
-  <div name=cuerpo>
-<?
-}
-
-function cabecera_fin() {
-  echo "\n  </div>\n<body>\n</html>\n";
-}*/
-
-?>
