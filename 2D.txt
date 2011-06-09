@@ -1,0 +1,26 @@
+LISTA DE TAREAS DE LA APLICACION DE VOLUNTARIOS
+=================================================
+
+* Leyenda:
+[] - Sin implementar
+[X] - Implementado
+[BUG] - Bug de la aplicacion (necesario corregir)
+
+
+ TAREAS PARA COMPLETAR
+=======================
+[] - Mejorar la validacion por javascript en java.js
+[] - Incluir captcha en el formulario de inscripcion y contanto
+[] - Modificar el layed DB (db.php) para que tenga solo 1 conexion persistente y
+     relize todas las consultas por esa conexion (implementarlo a travez de
+     un db_init_database() q realize la conexion y autenticacion, e ir
+     usando esa misma conexion para todas las querys)
+[] - Pagina de LOPD, proteccion de datos privados, etc (hablar con LEGAL)
+
+
+ BUGS A CORREGIR
+=================
+
+
+ TAREAS COMPLETADAS
+====================
