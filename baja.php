@@ -3,10 +3,6 @@
   include("modelo.volunteers.php");
   include("vista.php");
 
-  //variables globales para enviar correo---------------------------------
-  $direccion_pagina=$_SERVER['SERVER_NAME'].$_SERVER['SCRIPT_NAME'];//127.0.0.1/voluntarios/index.php
-  $email_emisor="turboasm@hotmail.com";
-
   mysql_conectar();//conectar a la base de datos;
   //validar datos de entrada
   if(!empty($_POST)){     $_in = $_POST;}

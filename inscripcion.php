@@ -2,10 +2,7 @@
   include "modelo.volunteers.php";
   include "function.php";
   include "vista.php";
-//127.0.0.1/volunteers/inscripcion.php?registrar=grabar&correo=alex.rugby%40gmail.com&crip=096e972e598f5b04f27b87f6482cd593&nombre=esteban&apellidos=dtyfghjkl&codigo=23456&telefono=3456789876543&esp=3,6&dis=1,2&comentario=hola
-  //variables globales para enviar correo---------------------------------
-  $direccion_pagina=$_SERVER['SERVER_NAME'].$_SERVER['SCRIPT_NAME'];//127.0.0.1/voluntarios/index.php
-  $email_emisor="turboasm@hotmail.com";
+
   mysql_conectar();//conectar a la base de datos;
 
   //validar datos de entrada

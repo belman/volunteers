@@ -1,4 +1,8 @@
 <?
+//--------------------------------------------------------------------------------------------------------
+  $direccion_pagina=$_SERVER['SERVER_NAME'].$_SERVER['SCRIPT_NAME'];//127.0.0.1/voluntarios/index.php
+  $email_emisor="noreplay.voluntarios@tomalaplaza.net";
+//----------------------------------------------------------------------------------------------------------
 
 function function_crip_baja($i,$correo,$crip){
   //funcion de validacion------------------------------------
