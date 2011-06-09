@@ -74,8 +74,8 @@ function busca2(form){
       else{                 disp = disp + "," + (i+1);}
     }
   }
-  extra="buscar.php?buscar=buscar" + codigo + espe + disp;
-  alert(extra);
+  extra="busqueda.php?buscar=buscar" + codigo + espe + disp;
+//  alert(extra);
   actualizar("tabla_buscar_validar", extra);
 }
 
